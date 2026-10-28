@@ -26,3 +26,25 @@ def test_duplicate_signup_is_rejected():
         assert second.json()["detail"] == "Student is already signed up for this activity"
     finally:
         activities.pop(activity_name, None)
+
+
+def test_participant_can_be_unregistered():
+    activity_name = "Test Activity"
+    email = "student@example.com"
+    activities[activity_name] = {
+        "description": "Temporary test activity",
+        "schedule": "Mondays, 3:00 PM",
+        "max_participants": 5,
+        "participants": [email],
+    }
+
+    try:
+        response = client.delete(
+            f"/activities/{activity_name}/participants?email={email}"
+        )
+
+        assert response.status_code == 200
+        assert activities[activity_name]["participants"] == []
+        assert response.json()["message"] == f"Unregistered {email} from {activity_name}"
+    finally:
+        activities.pop(activity_name, None)
